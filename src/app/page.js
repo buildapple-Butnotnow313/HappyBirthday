@@ -8,8 +8,8 @@ import './globals.css';
  *  EDIT ME: personalise the note + name here
  * ───────────────────────────────────────────────────────────
  */
-const NAME = 'You'; // e.g. "Aiman" — shown in the big title
-const NOTE_TITLE = 'A small note, just for you';
+const NAME = 'Pretty Baby'; 
+const NOTE_TITLE = 'With Love';
 const NOTE_PARAGRAPHS = [
   `I'm not great with grand gestures — no skydiving, no surprise trip, no balloons falling from a ceiling. But I know how to sit with an idea until it works, line by line, until it feels right. So this is that, built quietly for you.`,
   `Today isn't really about cake or candles, even though those are nice too. It's a small marker that says: another year of you happened, and the world is better for it. The people around you got to keep you a little longer, and that's worth celebrating properly.`,
@@ -30,7 +30,7 @@ export default function BirthdayPage() {
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowTitle(true), 500);
-    const t2 = setTimeout(() => setStep('popup1'), 2600);
+    const t2 = setTimeout(() => setStep('popup1'), 10600);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
