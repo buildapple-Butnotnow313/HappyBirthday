@@ -1,65 +1,206 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useRef, useState } from 'react';
+import './globals.css';
+
+/**
+ * ───────────────────────────────────────────────────────────
+ *  EDIT ME: personalise the note + name here
+ * ───────────────────────────────────────────────────────────
+ */
+const NAME = 'You'; // e.g. "Aiman" — shown in the big title
+const NOTE_TITLE = 'A small note, just for you';
+const NOTE_PARAGRAPHS = [
+  `I'm not great with grand gestures — no skydiving, no surprise trip, no balloons falling from a ceiling. But I know how to sit with an idea until it works, line by line, until it feels right. So this is that, built quietly for you.`,
+  `Today isn't really about cake or candles, even though those are nice too. It's a small marker that says: another year of you happened, and the world is better for it. The people around you got to keep you a little longer, and that's worth celebrating properly.`,
+  `Wherever this year takes you, I hope it's kinder than the last one, louder where you want it loud, and quiet where you need rest. I hope you laugh at things that don't even make sense to anyone else in the room.`,
+  `Happy birthday. Here's to you — exactly as you are, not as anyone needed you to be.`,
+];
+const SIGNATURE = '— with care, always';
+
+export default function BirthdayPage() {
+  // steps: intro -> popup1 -> popup2 -> popup3 -> note
+  const [step, setStep] = useState('intro');
+  const [showTitle, setShowTitle] = useState(false);
+  const [passInput, setPassInput] = useState('');
+  const [formError, setFormError] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const noteRef = useRef(null);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setShowTitle(true), 500);
+    const t2 = setTimeout(() => setStep('popup1'), 2600);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
+  useEffect(() => {
+    // make sure video keeps looping seamlessly even if browser pauses it
+    const v = videoRef.current;
+    if (!v) return;
+    const handleEnded = () => {
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    };
+    v.addEventListener('ended', handleEnded);
+    return () => v.removeEventListener('ended', handleEnded);
+  }, []);
+
+  function handlePleaseSubmit(e) {
+    e.preventDefault();
+    if (passInput.trim().toLowerCase().includes('please')) {
+      setFormError(false);
+      setStep('note');
+    } else {
+      setFormError(true);
+    }
+  }
+
+  async function handleDownload() {
+    if (!noteRef.current) return;
+    setDownloading(true);
+    try {
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(noteRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: '#10201c',
+      });
+      const link = document.createElement('a');
+      link.download = 'birthday-note.png';
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Could not generate image', err);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="bday-root">
+      {/* ── continuous looping video background ── */}
+      <video
+        ref={videoRef}
+        className="bday-video"
+        src="/bg-video.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+      />
+      <div className="bday-veil" />
+
+      {/* ── title ── */}
+      <div className={`bday-title-wrap ${showTitle ? 'is-visible' : ''}`}>
+        <span className="bday-eyebrow">wishing you</span>
+        <h1 className="bday-title">
+          Happy Birthday
+          {NAME !== 'You' && <span className="bday-name">{NAME}</span>}
+        </h1>
+        <span className="bday-sparkle" aria-hidden="true">✦</span>
+      </div>
+
+      {/* ── popup 1 ── */}
+      {step === 'popup1' && (
+        <Overlay>
+          <Popup>
+            <p className="popup-text">
+              I don&rsquo;t know how to skydive, but I know how to code —
+              so this is a small gesture instead.
+            </p>
+            <button className="btn btn-primary" onClick={() => setStep('popup2')}>
+              Okay
+            </button>
+          </Popup>
+        </Overlay>
+      )}
+
+      {/* ── popup 2 ── */}
+      {step === 'popup2' && (
+        <Overlay>
+          <Popup>
+            <p className="popup-text">Do you want to see your birthday note?</p>
+            <div className="btn-row">
+              <button className="btn btn-primary" onClick={() => setStep('popup3')}>
+                Yes
+              </button>
+              <button className="btn btn-secondary" onClick={() => setStep('popup3')}>
+                Obviously yes
+              </button>
+            </div>
+          </Popup>
+        </Overlay>
+      )}
+
+      {/* ── popup 3: the "please" form ── */}
+      {step === 'popup3' && (
+        <Overlay>
+          <Popup>
+            <p className="popup-text">Say please to open.</p>
+            <form
+              className="please-form"
+              onSubmit={handlePleaseSubmit}
+              onChange={() => setFormError(false)}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+              <input
+                type="text"
+                value={passInput}
+                onChange={(e) => setPassInput(e.target.value)}
+                placeholder="please..."
+                autoFocus
+                className={`please-input ${formError ? 'has-error' : ''}`}
+              />
+              <button type="submit" className="btn btn-primary">
+                Open
+              </button>
+            </form>
+            {formError && (
+              <p className="form-error">that didn&rsquo;t sound like a please — try again</p>
+            )}
+          </Popup>
+        </Overlay>
+      )}
+
+      {/* ── the note itself ── */}
+      {step === 'note' && (
+        <Overlay dark>
+          <div className="note-card" ref={noteRef}>
+            <span className="note-kicker">your note</span>
+            <h2 className="note-title">{NOTE_TITLE}</h2>
+            <div className="note-body">
+              {NOTE_PARAGRAPHS.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+            <p className="note-signature">{SIGNATURE}</p>
+            <div className="note-footer">
+              <p className="note-hint">
+                Don&rsquo;t worry, no need to take a screenshot —
+              </p>
+              <button
+                className="btn btn-download"
+                onClick={handleDownload}
+                disabled={downloading}
+              >
+                {downloading ? 'Saving…' : 'Click here to download the note'}
+              </button>
+            </div>
+          </div>
+        </Overlay>
+      )}
+    </main>
   );
+}
+
+function Overlay({ children, dark }) {
+  return <div className={`bday-overlay ${dark ? 'is-dark' : ''}`}>{children}</div>;
+}
+
+function Popup({ children }) {
+  return <div className="popup-card">{children}</div>;
 }
