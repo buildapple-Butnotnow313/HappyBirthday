@@ -1,36 +1,45 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import './globals.css';
-
-/**
- * ───────────────────────────────────────────────────────────
- *  EDIT ME: personalise the note + name here
- * ───────────────────────────────────────────────────────────
- */
-const NAME = 'Pretty Baby'; 
-const NOTE_TITLE = 'With Love';
+import { useEffect, useRef, useState } from "react";
+import "./globals.css";
+  
+const NAME = "M. Usama Khan";
+const NOTE_TITLE = "Happy Birthday";
 const NOTE_PARAGRAPHS = [
-  `I'm not great with grand gestures — no skydiving, no surprise trip, no balloons falling from a ceiling. But I know how to sit with an idea until it works, line by line, until it feels right. So this is that, built quietly for you.`,
-  `Today isn't really about cake or candles, even though those are nice too. It's a small marker that says: another year of you happened, and the world is better for it. The people around you got to keep you a little longer, and that's worth celebrating properly.`,
-  `Wherever this year takes you, I hope it's kinder than the last one, louder where you want it loud, and quiet where you need rest. I hope you laugh at things that don't even make sense to anyone else in the room.`,
-  `Happy birthday. Here's to you — exactly as you are, not as anyone needed you to be.`,
+  `To,
+  The man who makes his loved ones feel special,
+who is good with children and cats and kittens and turtles and etc etc,
+who takes care of his Mom and siblings,
+who remembers small little details (like how I hate chocolate),
+who tries his best to fulfill his family's wishes,
+who is expressive through actions, not only through words,
+who is ambitious and, most importantly, is a man of principles,
+who remembered me while being in the skies,
+
+I've seen so many beautiful sides of you in all these years!
+your kindness, your efforts, your dreams, 
+and I'm so, so, so proud of the man you were and the man you're becoming. 
+
+Your existence makes this world a better place, and remember that I'm your biggest cheerleader, rooting, and praying for you hameshaaaa
+
+You deserve all the happiness, peace, and success, and may Allah bless your life with endless khair, protect your heart from sadness, and give you success beyond what you imagine.
+Ameen.`,
 ];
-const SIGNATURE = '— with care, always';
+const SIGNATURE = "- Yours truly, Jia.";
 
 export default function BirthdayPage() {
-  // steps: intro -> popup1 -> popup2 -> popup3 -> note
-  const [step, setStep] = useState('intro');
+  const [step, setStep] = useState("intro");
   const [showTitle, setShowTitle] = useState(false);
-  const [passInput, setPassInput] = useState('');
+  const [passInput, setPassInput] = useState("");
   const [formError, setFormError] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [isSecondRead, setIsSecondRead] = useState(false);
   const noteRef = useRef(null);
   const videoRef = useRef(null);
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowTitle(true), 500);
-    const t2 = setTimeout(() => setStep('popup1'), 10600);
+    const t2 = setTimeout(() => setStep("popup1"), 6600);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -38,43 +47,74 @@ export default function BirthdayPage() {
   }, []);
 
   useEffect(() => {
-    // make sure video keeps looping seamlessly even if browser pauses it
     const v = videoRef.current;
     if (!v) return;
     const handleEnded = () => {
       v.currentTime = 0;
       v.play().catch(() => {});
     };
-    v.addEventListener('ended', handleEnded);
-    return () => v.removeEventListener('ended', handleEnded);
+    v.addEventListener("ended", handleEnded);
+    return () => v.removeEventListener("ended", handleEnded);
   }, []);
 
   function handlePleaseSubmit(e) {
     e.preventDefault();
-    if (passInput.trim().toLowerCase().includes('please')) {
+    if (passInput.trim().toLowerCase().includes("please")) {
       setFormError(false);
-      setStep('note');
+      setStep("note");
     } else {
       setFormError(true);
     }
+  }
+
+  function handleReadAgain() {
+    setIsSecondRead(true);
+    setPassInput("");
+    setFormError(false);
+    setStep("popup3");
   }
 
   async function handleDownload() {
     if (!noteRef.current) return;
     setDownloading(true);
     try {
-      const { toPng } = await import('html-to-image');
-      const dataUrl = await toPng(noteRef.current, {
+      const { toPng } = await import("html-to-image");
+
+      // clone the note card at full natural height so nothing is clipped
+      const original = noteRef.current;
+      const clone = original.cloneNode(true);
+
+      Object.assign(clone.style, {
+        position: "fixed",
+        top: "-99999px",
+        left: "0",
+        width: original.offsetWidth + "px",
+        maxHeight: "none",
+        height: "auto",
+        overflowY: "visible",
+        borderRadius: "20px",
+        padding: "2rem 1.6rem 1.8rem",
+        background: "linear-gradient(165deg, #16291f 0%, #0e1c17 100%)",
+      });
+
+      document.body.appendChild(clone);
+
+      const dataUrl = await toPng(clone, {
         cacheBust: true,
         pixelRatio: 2,
-        backgroundColor: '#10201c',
+        backgroundColor: "#10201c",
+        width: original.offsetWidth,
+        height: clone.scrollHeight,
       });
-      const link = document.createElement('a');
-      link.download = 'birthday-note.png';
+
+      document.body.removeChild(clone);
+
+      const link = document.createElement("a");
+      link.download = "birthday-note.png";
       link.href = dataUrl;
       link.click();
     } catch (err) {
-      console.error('Could not generate image', err);
+      console.error("Could not generate image", err);
     } finally {
       setDownloading(false);
     }
@@ -82,7 +122,6 @@ export default function BirthdayPage() {
 
   return (
     <main className="bday-root">
-      {/* ── continuous looping video background ── */}
       <video
         ref={videoRef}
         className="bday-video"
@@ -95,53 +134,77 @@ export default function BirthdayPage() {
       />
       <div className="bday-veil" />
 
-      {/* ── title ── */}
-      <div className={`bday-title-wrap ${showTitle ? 'is-visible' : ''}`}>
-        <span className="bday-eyebrow">wishing you</span>
+      {/* title */}
+      <div className={`bday-title-wrap ${showTitle ? "is-visible" : ""}`}>
+        <span className="bday-eyebrow">wishing you a very</span>
         <h1 className="bday-title">
           Happy Birthday
-          {NAME !== 'You' && <span className="bday-name">{NAME}</span>}
+          {NAME !== "You" && <span className="bday-name">{NAME}</span>}
         </h1>
-        <span className="bday-sparkle" aria-hidden="true">✦</span>
+        {step === "done" && (
+    <>
+      <span className="bday-sparkle" aria-hidden="true" style={{ marginRight: "6px" }}>
+        ✦
+      </span>
+
+      <button className="btn btn-read-again" onClick={handleReadAgain}>
+        Read Note Again
+      </button>
+
+      <span className="bday-sparkle" aria-hidden="true" style={{ marginLeft: "6px" }}>
+        ✦
+      </span>
+    </>
+  )}
       </div>
 
-      {/* ── popup 1 ── */}
-      {step === 'popup1' && (
+      {/* popup 1 */}
+      {step === "popup1" && (
         <Overlay>
           <Popup>
             <p className="popup-text">
-              I don&rsquo;t know how to skydive, but I know how to code —
-              so this is a small gesture instead.
+              Idk how to skydive, but I know how to code so 
             </p>
-            <button className="btn btn-primary" onClick={() => setStep('popup2')}>
-              Okay
+            <button
+              className="btn btn-primary"
+              onClick={() => setStep("popup2")}
+            >
+              A little gift for You!
             </button>
           </Popup>
         </Overlay>
       )}
 
-      {/* ── popup 2 ── */}
-      {step === 'popup2' && (
+      {/* popup 2 */}
+      {step === "popup2" && (
         <Overlay>
           <Popup>
-            <p className="popup-text">Do you want to see your birthday note?</p>
+            <p className="popup-text">
+              Do you want to read your birthday note?
+            </p>
             <div className="btn-row">
-              <button className="btn btn-primary" onClick={() => setStep('popup3')}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setStep("popup3")}
+              >
                 Yes
               </button>
-              <button className="btn btn-secondary" onClick={() => setStep('popup3')}>
-                Obviously yes
+              <button
+                className="btn btn-primary"
+                onClick={() => setStep("popup3")}
+              >
+                Obviously, Yes!
               </button>
             </div>
           </Popup>
         </Overlay>
       )}
 
-      {/* ── popup 3: the "please" form ── */}
-      {step === 'popup3' && (
+      {/* popup 3: the "please" form */}
+      {step === "popup3" && (
         <Overlay>
           <Popup>
-            <p className="popup-text">Say please to open.</p>
+            <p className="popup-text">Say please to open</p>
             <form
               className="please-form"
               onSubmit={handlePleaseSubmit}
@@ -152,44 +215,78 @@ export default function BirthdayPage() {
                 value={passInput}
                 onChange={(e) => setPassInput(e.target.value)}
                 placeholder="please..."
-                autoFocus
-                className={`please-input ${formError ? 'has-error' : ''}`}
+                onFocus={() => setStep(isSecondRead ? "popup3c" : "popup3b")}
+                className={`please-input ${formError ? "has-error" : ""}`}
               />
               <button type="submit" className="btn btn-primary">
                 Open
               </button>
             </form>
             {formError && (
-              <p className="form-error">that didn&rsquo;t sound like a please — try again</p>
+              <p className="form-error">
+                says please piyaar sy
+              </p>
             )}
           </Popup>
         </Overlay>
       )}
 
-      {/* ── the note itself ── */}
-      {step === 'note' && (
+      {/* popup 3b: birthday pardon (first time) */}
+      {step === "popup3b" && (
+        <Overlay>
+          <Popup>
+            <p className="popup-text">
+              Today is an exception bcz it's yr birthday
+            </p>
+            <button className="btn btn-primary" onClick={() => setStep("note")}>
+              Maaf kiya!
+            </button>
+          </Popup>
+        </Overlay>
+      )}
+
+      {/* popup 3c: second-time pardon */}
+      {step === "popup3c" && (
+        <Overlay>
+          <Popup>
+            <p className="popup-text">Dubara maaf kiya </p>
+            <button className="btn btn-primary" onClick={() => setStep("note")}>
+              Open
+            </button>
+          </Popup>
+        </Overlay>
+      )}
+
+      {/* the note itself */}
+      {step === "note" && (
         <Overlay dark>
+        <button className="note-close" onClick={() => setStep("done")} aria-label="Close note">✕</button>
           <div className="note-card" ref={noteRef}>
-            <span className="note-kicker">your note</span>
             <h2 className="note-title">{NOTE_TITLE}</h2>
             <div className="note-body">
               {NOTE_PARAGRAPHS.map((p, i) => (
-                <p key={i}>{p}</p>
+                <p key={i} className="whitespace-pre-line">
+                  {p}
+                </p>
               ))}
             </div>
-            <p className="note-signature">{SIGNATURE}</p>
+            <p className="note-signature">{SIGNATURE}</p><br/>
             <div className="note-footer">
               <p className="note-hint">
-                Don&rsquo;t worry, no need to take a screenshot —
-              </p>
+                "Base Order: Save this note to his gallery" <br/><br/> Addendum: No need to burden his
+                hands on his birthday by taking a screenshot
+              </p><br/>
               <button
                 className="btn btn-download"
-                onClick={handleDownload}
+                onClick={async () => {
+                  await handleDownload();
+                  setStep("done");
+                }}
                 disabled={downloading}
               >
-                {downloading ? 'Saving…' : 'Click here to download the note'}
+                {downloading ? "Saving…" : "Roger that, SWE!"}
               </button>
-            </div>
+            </div><br/>
           </div>
         </Overlay>
       )}
@@ -198,7 +295,9 @@ export default function BirthdayPage() {
 }
 
 function Overlay({ children, dark }) {
-  return <div className={`bday-overlay ${dark ? 'is-dark' : ''}`}>{children}</div>;
+  return (
+    <div className={`bday-overlay ${dark ? "is-dark" : ""}`}>{children}</div>
+  );
 }
 
 function Popup({ children }) {
