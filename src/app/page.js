@@ -39,7 +39,7 @@ export default function BirthdayPage() {
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowTitle(true), 500);
-    const t2 = setTimeout(() => setStep("popup1"), 6600);
+    const t2 = setTimeout(() => setStep("popup1"), 6000);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
