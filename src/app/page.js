@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import "./globals.css";
-  
+
 const NAME = "M. Usama Khan";
 const NOTE_TITLE = "Happy Birthday";
 const NOTE_PARAGRAPHS = [
@@ -51,7 +51,7 @@ export default function BirthdayPage() {
     if (!v) return;
     const handleEnded = () => {
       v.currentTime = 0;
-      v.play().catch(() => {});
+      v.play().catch(() => { });
     };
     v.addEventListener("ended", handleEnded);
     return () => v.removeEventListener("ended", handleEnded);
@@ -74,51 +74,60 @@ export default function BirthdayPage() {
     setStep("popup3");
   }
 
-  async function handleDownload() {
-    if (!noteRef.current) return;
-    setDownloading(true);
-    try {
-      const { toPng } = await import("html-to-image");
+async function handleDownload() {
+  if (!noteRef.current) return;
 
-      // clone the note card at full natural height so nothing is clipped
-      const original = noteRef.current;
-      const clone = original.cloneNode(true);
+  setDownloading(true);
 
-      Object.assign(clone.style, {
-        position: "fixed",
-        top: "-99999px",
-        left: "0",
-        width: original.offsetWidth + "px",
-        maxHeight: "none",
-        height: "auto",
-        overflowY: "visible",
-        borderRadius: "20px",
-        padding: "2rem 1.6rem 1.8rem",
-        background: "linear-gradient(165deg, #16291f 0%, #0e1c17 100%)",
-      });
+  const note = noteRef.current;
 
-      document.body.appendChild(clone);
+  // Save original styles
+  const originalMaxHeight = note.style.maxHeight;
+  const originalHeight = note.style.height;
+  const originalOverflow = note.style.overflow;
+  const originalOverflowY = note.style.overflowY;
 
-      const dataUrl = await toPng(clone, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#10201c",
-        width: original.offsetWidth,
-        height: clone.scrollHeight,
-      });
+  try {
+    const { toPng } = await import("html-to-image");
 
-      document.body.removeChild(clone);
+    // Temporarily expand the actual note to its full natural height
+    note.style.maxHeight = "none";
+    note.style.height = "auto";
+    note.style.overflow = "visible";
+    note.style.overflowY = "visible";
 
-      const link = document.createElement("a");
-      link.download = "birthday-note.png";
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error("Could not generate image", err);
-    } finally {
-      setDownloading(false);
-    }
+    // Allow browser to recalculate layout
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const width = note.offsetWidth;
+    const height = note.scrollHeight;
+
+    const dataUrl = await toPng(note, {
+      cacheBust: true,
+      pixelRatio: 2,
+      backgroundColor: "#10201c",
+      width: width,
+      height: height,
+    });
+
+    const link = document.createElement("a");
+    link.download = "birthday-note.png";
+    link.href = dataUrl;
+    link.click();
+
+  } catch (err) {
+    console.error("Could not generate image", err);
+
+  } finally {
+    // Restore original styles
+    note.style.maxHeight = originalMaxHeight;
+    note.style.height = originalHeight;
+    note.style.overflow = originalOverflow;
+    note.style.overflowY = originalOverflowY;
+
+    setDownloading(false);
   }
+}
 
   return (
     <main className="bday-root">
@@ -142,20 +151,20 @@ export default function BirthdayPage() {
           {NAME !== "You" && <span className="bday-name">{NAME}</span>}
         </h1>
         {step === "done" && (
-    <>
-      <span className="bday-sparkle" aria-hidden="true" style={{ marginRight: "6px" }}>
-        ✦
-      </span>
+          <>
+            <span className="bday-sparkle" aria-hidden="true" style={{ marginRight: "6px" }}>
+              ✦
+            </span>
 
-      <button className="btn btn-read-again" onClick={handleReadAgain}>
-        Read Note Again
-      </button>
+            <button className="btn btn-read-again" onClick={handleReadAgain}>
+              Read Note Again
+            </button>
 
-      <span className="bday-sparkle" aria-hidden="true" style={{ marginLeft: "6px" }}>
-        ✦
-      </span>
-    </>
-  )}
+            <span className="bday-sparkle" aria-hidden="true" style={{ marginLeft: "6px" }}>
+              ✦
+            </span>
+          </>
+        )}
       </div>
 
       {/* popup 1 */}
@@ -163,7 +172,7 @@ export default function BirthdayPage() {
         <Overlay>
           <Popup>
             <p className="popup-text">
-              Idk how to skydive, but I know how to code so 
+              Idk how to skydive, but I know how to code so
             </p>
             <button
               className="btn btn-primary"
@@ -260,7 +269,7 @@ export default function BirthdayPage() {
       {/* the note itself */}
       {step === "note" && (
         <Overlay dark>
-        <button className="note-close" onClick={() => setStep("done")} aria-label="Close note">✕</button>
+          <button className="note-close" onClick={() => setStep("done")} aria-label="Close note">✕</button>
           <div className="note-card" ref={noteRef}>
             <h2 className="note-title">{NOTE_TITLE}</h2>
             <div className="note-body">
@@ -270,12 +279,12 @@ export default function BirthdayPage() {
                 </p>
               ))}
             </div>
-            <p className="note-signature">{SIGNATURE}</p><br/>
+            <p className="note-signature">{SIGNATURE}</p><br />
             <div className="note-footer">
               <p className="note-hint">
-                "Base Order: Save this note to his gallery" <br/><br/> Addendum: No need to burden his
+                "Base Order: Save this note to his gallery" <br /><br /> Addendum: No need to burden his
                 hands on his birthday by taking a screenshot
-              </p><br/>
+              </p><br />
               <button
                 className="btn btn-download"
                 onClick={async () => {
@@ -284,9 +293,9 @@ export default function BirthdayPage() {
                 }}
                 disabled={downloading}
               >
-                {downloading ? "Saving…" : "Roger that, SWE!"}
+                {downloading ? "Saving…" : "Roger, SWE!"}
               </button>
-            </div><br/>
+            </div><br />
           </div>
         </Overlay>
       )}

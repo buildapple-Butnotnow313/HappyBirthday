@@ -107,7 +107,7 @@ body {
 .bday-name {
   display: block;
   font-size: 1.8rem;
-    font-weight: 600;
+    font-weight: 700;
   font-style: normal;
   color: var(--gold);
   margin-top: 1.05rem;
@@ -284,8 +284,8 @@ body {
 /* Close button */
 .note-close {
   position: absolute;
-  top: 25px;
-  right: 40px;
+  top: 15px;
+  right: 30px;
 
   width: 36px;
   height: 36px;
